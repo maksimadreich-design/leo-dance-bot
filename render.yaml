@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: leo-dance-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 8964323984:AAGZEM1-aLOk6hm2ovf1Jm8opgRIsZ9MIIw
+      - key: ADMIN_IDS
+        value: "8037659528"
+      - key: PYTHON_VERSION
+        value: 3.12.0
