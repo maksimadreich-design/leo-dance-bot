@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>LEO DANCE — Management Console</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #0b0908;
+            color: #f7f4f0;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 85px);
+        }
+        .luxury-card {
+            background: #14100e;
+            border: 1px solid #28201a;
+        }
+        .luxury-card-interactive:active {
+            transform: scale(0.985);
+        }
+        .gold-badge {
+            background: rgba(212, 140, 22, 0.12);
+            color: #f7c665;
+            border: 1px solid rgba(212, 140, 22, 0.3);
+        }
+        .gold-btn {
+            background: #d48c16;
+            color: #0b0908;
+            font-weight: 700;
+        }
+        .gold-btn:active {
+            background: #b8750e;
+            transform: scale(0.98);
+        }
+        .subtle-border {
+            border-color: #28201a;
+        }
+        .glass-header {
+            background: rgba(11, 9, 8, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+    </style>
+</head>
+<body class="selection:bg-amber-900 selection:text-white">
+
+    <!-- Top Sticky Minimal Header -->
+    <header class="sticky top-0 z-40 glass-header border-b subtle-border px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-600 to-amber-900 flex items-center justify-center font-bold text-xs tracking-wider text-black shadow-inner">
+                LEO
+            </div>
+            <div>
+                <h1 class="text-sm font-bold tracking-tight text-white leading-none">LEO DANCE STUDIO</h1>
+                <p class="text-[10px] text-amber-500/80 font-medium tracking-wide uppercase mt-1">м. Дрогобич • Адмін-панель</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="openImportModal()" class="px-2.5 py-1.5 rounded-lg bg-[#1f1712] border subtle-border text-[11px] font-semibold text-amber-400 active:scale-95 transition-transform flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span>Імпорт із зошита</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-md mx-auto p-4 space-y-4">
+
+        <!-- TAB 1: СЬОГОДНІШНІ ТРЕНУВАННЯ ТА ВІДМІТКА -->
+        <section id="view-today" class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <div>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-stone-400">Тренування на сьогодні</h2>
+                    <p id="today-formatted" class="text-xs text-stone-500 mt-0.5"></p>
+                </div>
+                <button onclick="openAddBookingModal()" class="text-xs text-amber-400 font-semibold px-2 py-1 rounded bg-[#1c1510] border subtle-border active:scale-95">
+                    + Записати клієнта
+                </button>
+            </div>
+
+            <div id="bookings-list" class="space-y-2.5">
+                <div class="p-8 text-center luxury-card rounded-2xl">
+                    <p class="text-xs text-stone-500">Завантаження записів...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: БАЗА КЛІЄНТОК ТА ЕКСПОРТ EXCEL -->
+        <section id="view-clients" class="space-y-3 hidden">
+            <div class="flex items-center justify-between px-1">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-stone-400">Клієнтська база</h2>
+                <div class="flex space-x-2">
+                    <a href="/api/clients/export-excel" target="_blank" class="text-xs text-stone-300 font-semibold px-2.5 py-1.5 rounded-lg bg-[#1f1712] border subtle-border active:scale-95 flex items-center space-x-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>Експорт Excel</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative">
+                <input type="text" id="client-search-input" oninput="handleClientSearch()" placeholder="Пошук за ім'ям або номером телефону..." 
+                    class="w-full bg-[#14100e] border subtle-border rounded-xl px-4 py-3 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-amber-600/60 transition-colors">
+            </div>
+
+            <div id="clients-list" class="space-y-2">
+                <div class="p-8 text-center luxury-card rounded-2xl">
+                    <p class="text-xs text-stone-500">Завантаження бази...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: КЕРУВАННЯ ГРАФІКОМ СТУДІЇ -->
+        <section id="view-schedule" class="space-y-3 hidden">
+            <div class="flex items-center justify-between px-1">
+                <div>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-stone-400">Графік та напрямки</h2>
+                    <p class="text-[11px] text-stone-500">Редагуйте години та дні тренувань</p>
+                </div>
+                <button onclick="openAddGroupModal()" class="text-xs text-amber-400 font-semibold px-2.5 py-1.5 rounded-lg bg-[#1c1510] border subtle-border active:scale-95">
+                    + Нова група
+                </button>
+            </div>
+
+            <div id="groups-list" class="space-y-2.5">
+                <div class="p-8 text-center luxury-card rounded-2xl">
+                    <p class="text-xs text-stone-500">Завантаження розкладу...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: КАСА ТА АНАЛІТИКА -->
+        <section id="view-finance" class="space-y-3 hidden">
+            <div class="grid grid-cols-2 gap-2.5">
+                <div class="luxury-card p-4 rounded-2xl">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-stone-500">Активні абонементи</span>
+                    <p id="fin-active-subs" class="text-2xl font-extrabold text-amber-400 mt-1">0</p>
+                </div>
+                <div class="luxury-card p-4 rounded-2xl">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider text-stone-500">Всього учениць</span>
+                    <p id="fin-total-clients" class="text-2xl font-extrabold text-white mt-1">0</p>
+                </div>
+            </div>
+
+            <div class="luxury-card p-4 rounded-2xl">
+                <span class="text-[10px] font-semibold uppercase tracking-wider text-stone-500">Загальний дохід (абонементи)</span>
+                <p id="fin-revenue" class="text-3xl font-black text-amber-400 mt-1">0 грн</p>
+                <p class="text-[11px] text-stone-500 mt-1">Каса оновлюється автоматично при продажу занять</p>
+            </div>
+
+            <div class="luxury-card p-4 rounded-2xl border-amber-900/40">
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Розумний контроль оплат</h3>
+                <p class="text-xs text-stone-400 mt-1 leading-relaxed">
+                    Надіслати персональне нагадування дівчатам, у кого залишилося ≤ 1 заняття за абонементом.
+                </p>
+                <button onclick="triggerBroadcastReminders()" class="w-full mt-3 gold-btn py-3 rounded-xl text-xs font-bold shadow-lg">
+                    Розіслати нагадування в Telegram
+                </button>
+            </div>
+        </section>
+
+        <!-- TAB 5: ЗАЯВКИ ТА ПРОБНІ З РЕКЛАМИ -->
+        <section id="view-leads" class="space-y-3 hidden">
+            <div class="flex items-center justify-between px-1">
+                <div>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-stone-400">Заявки з Instagram та реклами</h2>
+                    <p class="text-[11px] text-stone-500">Воронка пробних тренувань (High Heels / Діти)</p>
+                </div>
+            </div>
+
+            <!-- Deep link quick copy cards -->
+            <div class="luxury-card p-3.5 rounded-2xl space-y-2 border-amber-900/30">
+                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Готові посилання для шапки Instagram / Stories</span>
+                <div class="space-y-1.5 text-xs">
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-[#0d0a08] border subtle-border">
+                        <div>
+                            <p class="text-white font-medium text-[11px]">👠 Пробне High Heels (150 грн)</p>
+                            <p class="text-[10px] text-stone-500 select-all">t.me/Leo_dance_studiobot?start=trial_heels</p>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('https://t.me/Leo_dance_studiobot?start=trial_heels'); showCustomAlert('Посилання скопійовано! Вставте його в Instagram Stories або рекламу.', 'Готово');" class="px-2.5 py-1 rounded bg-[#201813] border subtle-border text-[10px] font-semibold text-amber-400 active:scale-95">
+                            Копіювати
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-[#0d0a08] border subtle-border">
+                        <div>
+                            <p class="text-white font-medium text-[11px]">👶 Дитячі групи (3-15 років)</p>
+                            <p class="text-[10px] text-stone-500 select-all">t.me/Leo_dance_studiobot?start=trial_kids</p>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('https://t.me/Leo_dance_studiobot?start=trial_kids'); showCustomAlert('Посилання скопійовано! Вставте його в шапку Instagram.', 'Готово');" class="px-2.5 py-1 rounded bg-[#201813] border subtle-border text-[10px] font-semibold text-amber-400 active:scale-95">
+                            Копіювати
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leads List -->
+            <div id="leads-list" class="space-y-2">
+                <div class="p-6 text-center text-xs text-stone-500 luxury-card rounded-2xl">Завантаження заявок...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Ergonomic Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 glass-header border-t subtle-border px-2 py-2 flex items-center justify-around max-w-md mx-auto">
+        <button onclick="setTab('today')" id="nav-btn-today" class="flex flex-col items-center justify-center w-14 py-1 text-amber-400 transition-colors">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span class="text-[9px] font-semibold tracking-tight">Сьогодні</span>
+        </button>
+
+        <button onclick="setTab('leads')" id="nav-btn-leads" class="flex flex-col items-center justify-center w-14 py-1 text-stone-500 hover:text-stone-300 transition-colors relative">
+            <div class="relative">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span id="leads-badge" class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-[#0b0908] animate-pulse hidden"></span>
+            </div>
+            <span class="text-[9px] font-semibold tracking-tight">Заявки</span>
+        </button>
+
+        <button onclick="setTab('clients')" id="nav-btn-clients" class="flex flex-col items-center justify-center w-14 py-1 text-stone-500 hover:text-stone-300 transition-colors">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <span class="text-[9px] font-semibold tracking-tight">Клієнти</span>
+        </button>
+
+        <button onclick="setTab('schedule')" id="nav-btn-schedule" class="flex flex-col items-center justify-center w-14 py-1 text-stone-500 hover:text-stone-300 transition-colors">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-[9px] font-semibold tracking-tight">Графік</span>
+        </button>
+
+        <button onclick="setTab('finance')" id="nav-btn-finance" class="flex flex-col items-center justify-center w-14 py-1 text-stone-500 hover:text-stone-300 transition-colors">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span class="text-[9px] font-semibold tracking-tight">Каса</span>
+        </button>
+    </nav>
+
+    <!-- MODAL 1: OCR / ІМПОРТ З ФОТО ЗОШИТА -->
+    <div id="modal-import" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-[#14100e] border subtle-border w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b subtle-border pb-3">
+                <h3 class="text-sm font-bold text-white tracking-wide">Імпорт учениць з фото зошита</h3>
+                <button onclick="closeModal('modal-import')" class="text-stone-400 hover:text-white text-lg">&times;</button>
+            </div>
+            <p class="text-xs text-stone-400 leading-relaxed">
+                Сфотографуйте сторінку журналу або зошита зі списком дівчат і телефонами. Система автоматично розпізнає контакти та внесе їх у базу студії.
+            </p>
+            <div class="border-2 border-dashed subtle-border rounded-xl p-6 text-center space-y-3 bg-[#0d0a08]">
+                <input type="file" id="ocr-file-input" accept="image/*" class="hidden" onchange="handleOcrUpload(event)">
+                <button onclick="document.getElementById('ocr-file-input').click()" class="px-4 py-2.5 rounded-xl bg-[#231a14] border subtle-border text-xs font-semibold text-amber-400">
+                    Обрати або сфотографувати
+                </button>
+                <p id="ocr-status" class="text-[11px] text-stone-500">Формати: JPG, PNG, HEIC</p>
+            </div>
+            <div class="pt-2">
+                <button onclick="closeModal('modal-import')" class="w-full py-2.5 rounded-xl bg-[#201813] text-stone-300 text-xs font-semibold">Закрити</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: РЕДАГУВАННЯ / ДОДАВАННЯ ГРУПИ -->
+    <div id="modal-group" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-[#14100e] border subtle-border w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b subtle-border pb-3">
+                <h3 class="text-sm font-bold text-white tracking-wide">Налаштування групи / напрямку</h3>
+                <button onclick="closeModal('modal-group')" class="text-stone-400 hover:text-white text-lg">&times;</button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-stone-400 font-medium">Назва групи</label>
+                    <input type="text" id="grp-name" placeholder="напр. High Heels (Початківці)" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-stone-400 font-medium">Дні тижня</label>
+                        <input type="text" id="grp-days" placeholder="Вт / Чт" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-stone-400 font-medium">Година</label>
+                        <input type="text" id="grp-time" placeholder="20:00" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-stone-400 font-medium">Тренерка</label>
+                        <input type="text" id="grp-trainer" placeholder="Каріна" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-stone-400 font-medium">Місць у залі</label>
+                        <input type="number" id="grp-capacity" value="14" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeModal('modal-group')" class="flex-1 py-2.5 rounded-xl bg-[#201813] text-stone-300 text-xs font-semibold">Скасувати</button>
+                <button onclick="saveGroup()" class="flex-1 py-2.5 rounded-xl gold-btn text-xs font-bold">Зберегти групу</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ДОДАТИ АБОНЕМЕНТ КЛІЄНТУ -->
+    <div id="modal-sub" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-[#14100e] border subtle-border w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b subtle-border pb-3">
+                <h3 class="text-sm font-bold text-white tracking-wide">Поповнення абонемента</h3>
+                <button onclick="closeModal('modal-sub')" class="text-stone-400 hover:text-white text-lg">&times;</button>
+            </div>
+            <p class="text-xs text-stone-400">Клієнт: <span id="modal-sub-client-name" class="font-bold text-amber-400"></span></p>
+            <div class="space-y-2">
+                <label class="text-xs text-stone-400">Оберіть тариф</label>
+                <select id="modal-sub-select" class="w-full bg-[#0d0a08] border subtle-border rounded-xl p-3 text-xs text-white">
+                    <option value="8:1200">8 занять — 1200 грн</option>
+                    <option value="12:1600">12 занять — 1600 грн</option>
+                    <option value="1:150">Пробне тренування — 150 грн</option>
+                    <option value="1:200">Разове High Heels — 200 грн</option>
+                </select>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeModal('modal-sub')" class="flex-1 py-2.5 rounded-xl bg-[#201813] text-stone-300 text-xs font-semibold">Скасувати</button>
+                <button onclick="confirmClientSub()" class="flex-1 py-2.5 rounded-xl gold-btn text-xs font-bold">Зарахувати кошти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: ЗАПИС КЛІЄНТА НА ТРЕНУВАННЯ -->
+    <div id="modal-booking" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-[#14100e] border subtle-border w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b subtle-border pb-3">
+                <h3 class="text-sm font-bold text-white tracking-wide">Швидкий запис учениці</h3>
+                <button onclick="closeModal('modal-booking')" class="text-stone-400 hover:text-white text-lg">&times;</button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-stone-400 font-medium">Оберіть ученицю</label>
+                    <select id="book-client-select" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-3 text-xs text-white">
+                        <option value="">Завантаження списку...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-stone-400 font-medium">Оберіть групу / напрямок</label>
+                    <select id="book-group-select" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-3 text-xs text-white">
+                        <option value="">Завантаження груп...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-stone-400 font-medium">Дата тренування</label>
+                    <input type="date" id="book-date" class="w-full mt-1 bg-[#0d0a08] border subtle-border rounded-xl p-3 text-xs text-white">
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeModal('modal-booking')" class="flex-1 py-2.5 rounded-xl bg-[#201813] text-stone-300 text-xs font-semibold">Скасувати</button>
+                <button onclick="confirmManualBooking()" class="flex-1 py-2.5 rounded-xl gold-btn text-xs font-bold">Підтвердити запис</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: ВИБІР ОТРИМУВАЧІВ РОЗСИЛКИ НАГАДУВАНЬ -->
+    <div id="modal-broadcast" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-[#14100e] border subtle-border w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b subtle-border pb-3 shrink-0">
+                <div>
+                    <h3 class="text-sm font-bold text-white tracking-wide">Кому надіслати нагадування</h3>
+                    <p class="text-[11px] text-stone-500 mt-0.5">Оберіть учениць для повідомлення про закінчення абонемента</p>
+                </div>
+                <button onclick="closeModal('modal-broadcast')" class="text-stone-400 hover:text-white text-lg">&times;</button>
+            </div>
+
+            <!-- Quick Action Bar -->
+            <div class="flex items-center justify-between bg-[#0d0a08] p-2.5 rounded-xl border subtle-border shrink-0">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="broadcast-select-all" onchange="toggleSelectAllBroadcast(this.checked)" class="w-4 h-4 rounded bg-[#1c1510] border-amber-600/60 accent-amber-500 cursor-pointer">
+                    <label for="broadcast-select-all" class="text-xs font-semibold text-stone-300 cursor-pointer select-none">Вибрати всі</label>
+                </div>
+                <span id="broadcast-selected-count" class="text-[11px] text-amber-400 font-bold px-2 py-0.5 rounded-md bg-[#1f1712] border subtle-border">0 обрано</span>
+            </div>
+
+            <!-- Scrollable Checklist -->
+            <div id="broadcast-clients-list" class="space-y-2 overflow-y-auto pr-1 flex-1 min-h-[160px]">
+                <div class="p-6 text-center text-xs text-stone-500">Завантаження...</div>
+            </div>
+
+            <div class="flex space-x-2 pt-2 border-t subtle-border shrink-0">
+                <button onclick="closeModal('modal-broadcast')" class="flex-1 py-2.5 rounded-xl bg-[#201813] text-stone-300 text-xs font-semibold">Скасувати</button>
+                <button onclick="confirmSendBroadcast()" class="flex-1 py-2.5 rounded-xl gold-btn text-xs font-bold shadow-lg">Надіслати обраним</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM LUXURY ALERT / CONFIRM DIALOG -->
+    <div id="modal-dialog" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#14100e] border subtle-border w-full max-w-xs rounded-2xl p-5 space-y-4 text-center shadow-2xl">
+            <div id="dialog-icon" class="w-10 h-10 mx-auto rounded-full bg-amber-950/60 border border-amber-600/40 flex items-center justify-center text-amber-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <h3 id="dialog-title" class="text-xs font-bold text-white tracking-wider uppercase">Підтвердження</h3>
+                <p id="dialog-message" class="text-xs text-stone-300 mt-2 leading-relaxed"></p>
+            </div>
+            <div id="dialog-actions" class="flex space-x-2 pt-2">
+                <button id="dialog-cancel-btn" onclick="closeDialog(false)" class="flex-1 py-2.5 rounded-xl bg-[#201813] text-stone-300 text-xs font-semibold active:scale-95">Скасувати</button>
+                <button id="dialog-ok-btn" onclick="closeDialog(true)" class="flex-1 py-2.5 rounded-xl gold-btn text-xs font-bold active:scale-95">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.ready();
+        }
+
+        let allClientsData = [];
+        let allGroupsData = [];
+        let activeClientId = null;
+
+        document.getElementById('today-formatted').innerText = new Date().toLocaleDateString('uk-UA', {
+            weekday: 'long', day: 'numeric', month: 'long'
+        });
+
+        function setTab(tab) {
+            ['today', 'leads', 'clients', 'schedule', 'finance'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`nav-btn-${t}`);
+                if (btn) btn.className = "flex flex-col items-center justify-center w-14 py-1 text-stone-500 hover:text-stone-300 transition-colors";
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-btn-${tab}`);
+            if (activeBtn) activeBtn.className = "flex flex-col items-center justify-center w-14 py-1 text-amber-400 transition-colors";
+
+            if (tab === 'today') loadTodayBookings();
+            if (tab === 'leads') loadLeads();
+            if (tab === 'clients') loadClients();
+            if (tab === 'schedule') loadSchedule();
+            if (tab === 'finance') loadFinance();
+        }
+
+        async function loadTodayBookings() {
+            const list = document.getElementById('bookings-list');
+            try {
+                const res = await fetch('/api/bookings/today');
+                const data = await res.json();
+                if (!data.length) {
+                    list.innerHTML = `
+                        <div class="p-8 text-center luxury-card rounded-2xl space-y-2">
+                            <p class="text-xs text-stone-400 font-medium">На сьогодні записів не зареєстровано</p>
+                            <p class="text-[11px] text-stone-600">Клієнтки можуть записатися самостійно через Telegram-бот</p>
+                        </div>
+                    `;
+                    return;
+                }
+                list.innerHTML = data.map(b => `
+                    <div class="luxury-card p-3.5 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-white">${b.client_name}</p>
+                            <p class="text-[11px] text-amber-400 font-medium mt-0.5">${b.group_name} • ${b.schedule_time}</p>
+                            <p class="text-[10px] text-stone-500 mt-0.5">Баланс: ${b.remaining_classes} занять</p>
+                        </div>
+                        <div class="flex items-center space-x-1.5">
+                            ${b.status === 'booked' ? `
+                                <button onclick="markAttendance(${b.id}, true)" class="px-3 py-2 bg-emerald-950/80 border border-emerald-600/50 text-emerald-400 rounded-xl text-xs font-bold active:scale-95 transition-transform">
+                                    Була
+                                </button>
+                                <button onclick="markAttendance(${b.id}, false)" class="px-2.5 py-2 bg-[#1f1712] border subtle-border text-stone-400 rounded-xl text-xs active:scale-95 transition-transform">
+                                    Хворіла
+                                </button>
+                            ` : `
+                                <span class="text-[10px] font-semibold px-2.5 py-1 rounded-lg ${b.status === 'attended' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-stone-900 text-stone-400'}">
+                                    ${b.status === 'attended' ? 'Зараховано' : 'Збережено'}
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                list.innerHTML = `<div class="p-4 text-center text-xs text-red-400">Помилка завантаження даних</div>`;
+            }
+        }
+
+        async function markAttendance(bookingId, attended) {
+            try {
+                await fetch(`/api/bookings/${bookingId}/attendance`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ attended })
+                });
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                loadTodayBookings();
+            } catch(e) {
+                alert('Помилка оновлення відвідування');
+            }
+        }
+
+        async function loadClients() {
+            try {
+                const res = await fetch('/api/clients');
+                allClientsData = await res.json();
+                renderClients(allClientsData);
+            } catch(e) {}
+        }
+
+        function renderClients(clients) {
+            const list = document.getElementById('clients-list');
+            if (!clients.length) {
+                list.innerHTML = `<div class="p-6 text-center text-xs text-stone-500 luxury-card rounded-2xl">Клієнток не знайдено</div>`;
+                return;
+            }
+            list.innerHTML = clients.map(c => `
+                <div class="luxury-card p-3.5 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-white">${c.full_name}</p>
+                        <p class="text-[11px] text-stone-400 mt-0.5">${c.phone}</p>
+                        <p class="text-[10px] mt-0.5 ${c.remaining_classes <= 1 ? 'text-amber-400 font-semibold' : 'text-stone-500'}">
+                            Залишок: ${c.remaining_classes} занять (${c.sub_title})
+                        </p>
+                    </div>
+                    <button onclick="openSubModal(${c.id}, '${c.full_name}')" class="px-3 py-1.5 rounded-xl bg-[#201813] border subtle-border text-xs font-semibold text-amber-400 active:scale-95">
+                        + Абонемент
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function handleClientSearch() {
+            const query = document.getElementById('client-search-input').value.toLowerCase();
+            const filtered = allClientsData.filter(c => 
+                c.full_name.toLowerCase().includes(query) || c.phone.includes(query)
+            );
+            renderClients(filtered);
+        }
+
+        async function loadSchedule() {
+            const list = document.getElementById('groups-list');
+            try {
+                const res = await fetch('/api/groups');
+                allGroupsData = await res.json();
+                list.innerHTML = allGroupsData.map(g => `
+                    <div class="luxury-card p-3.5 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-white">${g.name}</p>
+                            <p class="text-[11px] text-amber-400 font-medium mt-0.5">${g.schedule_days} о ${g.schedule_time}</p>
+                            <p class="text-[10px] text-stone-500 mt-0.5">Тренер: ${g.trainer_name} • Місць: ${g.max_capacity}</p>
+                        </div>
+                        <button onclick="editGroup(${g.id})" class="px-2.5 py-1.5 rounded-xl bg-[#201813] border subtle-border text-xs text-stone-300 font-medium active:scale-95">
+                            Змінити
+                        </button>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+
+        async function loadFinance() {
+            try {
+                const res = await fetch('/api/stats');
+                const s = await res.json();
+                document.getElementById('fin-active-subs').innerText = s.active_subs;
+                document.getElementById('fin-total-clients').innerText = s.total_clients;
+                document.getElementById('fin-revenue').innerText = s.revenue.toLocaleString() + ' грн';
+            } catch(e) {}
+        }
+
+        function openImportModal() {
+            document.getElementById('modal-import').classList.remove('hidden');
+        }
+
+        function openSubModal(clientId, name) {
+            activeClientId = clientId;
+            document.getElementById('modal-sub-client-name').innerText = name;
+            document.getElementById('modal-sub').classList.remove('hidden');
+        }
+
+        function openAddGroupModal() {
+            document.getElementById('grp-name').value = '';
+            document.getElementById('grp-days').value = '';
+            document.getElementById('grp-time').value = '';
+            document.getElementById('grp-trainer').value = 'Каріна';
+            document.getElementById('grp-capacity').value = '14';
+            document.getElementById('modal-group').classList.remove('hidden');
+        }
+
+        function editGroup(groupId) {
+            const g = allGroupsData.find(x => x.id === groupId);
+            if (!g) return;
+            document.getElementById('grp-name').value = g.name;
+            document.getElementById('grp-days').value = g.schedule_days;
+            document.getElementById('grp-time').value = g.schedule_time;
+            document.getElementById('grp-trainer').value = g.trainer_name;
+            document.getElementById('grp-capacity').value = g.max_capacity;
+            document.getElementById('modal-group').classList.remove('hidden');
+        }
+
+        async function saveGroup() {
+            const name = document.getElementById('grp-name').value;
+            const days = document.getElementById('grp-days').value;
+            const time = document.getElementById('grp-time').value;
+            const trainer = document.getElementById('grp-trainer').value;
+            const capacity = parseInt(document.getElementById('grp-capacity').value) || 14;
+
+            if (!name || !days || !time) {
+                alert('Заповніть усі поля графіка');
+                return;
+            }
+
+            try {
+                await fetch('/api/groups', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, schedule_days: days, schedule_time: time, trainer_name: trainer, max_capacity: capacity })
+                });
+                closeModal('modal-group');
+                loadSchedule();
+            } catch(e) {
+                alert('Помилка збереження групи');
+            }
+        }
+
+        async function loadLeads() {
+            const list = document.getElementById('leads-list');
+            try {
+                const res = await fetch('/api/leads');
+                const data = await res.json();
+                
+                // Show badge only if there are pending leads
+                const pendingLeads = data.filter(l => l.lead_status === 'new' || l.lead_status === 'new_lead');
+                const badge = document.getElementById('leads-badge');
+                if (badge) {
+                    if (pendingLeads.length > 0) {
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+
+                if (!data.length) {
+                    list.innerHTML = `
+                        <div class="p-8 text-center luxury-card rounded-2xl space-y-2">
+                            <p class="text-xs text-stone-400 font-medium">Нових заявок з реклами поки що немає</p>
+                            <p class="text-[11px] text-stone-600">Коли дівчата переходять за посиланнями зі Stories, вони з'являються тут автоматично</p>
+                        </div>
+                    `;
+                    return;
+                }
+                list.innerHTML = data.map(lead => `
+                    <div class="luxury-card p-3.5 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <p class="text-xs font-bold text-white">${lead.full_name}</p>
+                                <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${lead.source === 'trial_heels' ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-sky-950 text-sky-400 border border-sky-800'}">
+                                    ${lead.source === 'trial_heels' ? 'High Heels' : 'Діти'}
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-stone-400 mt-1">${lead.phone || 'чекає зв\'язку в Telegram'}</p>
+                            <p class="text-[10px] text-stone-500 mt-0.5">Дата заявки: ${lead.created_at}</p>
+                        </div>
+                        <div class="flex flex-col space-y-1">
+                            <button onclick="updateLeadStatus(${lead.id}, 'trial_booked')" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-600/50 text-emerald-400 text-[10px] font-bold active:scale-95">
+                                Записано на пробне
+                            </button>
+                            <button onclick="updateLeadStatus(${lead.id}, 'lost')" class="px-2 py-1 rounded-lg bg-stone-900 border subtle-border text-stone-500 text-[10px] active:scale-95">
+                                Відхилити
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                list.innerHTML = `<div class="p-4 text-center text-xs text-red-400">Помилка завантаження заявок</div>`;
+            }
+        }
+
+        async function updateLeadStatus(userId, status) {
+            try {
+                await fetch(`/api/leads/${userId}/status`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ status })
+                });
+                loadLeads();
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } catch(e) {}
+        }
+
+        async function confirmClientSub() {
+            const [classes, price] = document.getElementById('modal-sub-select').value.split(':');
+            try {
+                await fetch(`/api/clients/${activeClientId}/subscription`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ classes_count: parseInt(classes), price: parseFloat(price) })
+                });
+                closeModal('modal-sub');
+                loadClients();
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } catch(e) {
+                alert('Помилка оновлення');
+            }
+        }
+
+        async function handleOcrUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const status = document.getElementById('ocr-status');
+            status.innerText = "Обробка та розпізнавання рукописного тексту...";
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/ocr/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+                status.innerText = `Розпізнано та додано учениць: ${result.imported_count}`;
+                loadClients();
+            } catch(e) {
+                status.innerText = "Помилка розпізнавання фото";
+            }
+        }
+
+        let dialogCallback = null;
+
+        function showCustomConfirm(message, title = "Підтвердження дії") {
+            return new Promise((resolve) => {
+                document.getElementById('dialog-title').innerText = title;
+                document.getElementById('dialog-message').innerText = message;
+                document.getElementById('dialog-cancel-btn').classList.remove('hidden');
+                document.getElementById('modal-dialog').classList.remove('hidden');
+                dialogCallback = resolve;
+            });
+        }
+
+        function showCustomAlert(message, title = "Повідомлення") {
+            return new Promise((resolve) => {
+                document.getElementById('dialog-title').innerText = title;
+                document.getElementById('dialog-message').innerText = message;
+                document.getElementById('dialog-cancel-btn').classList.add('hidden');
+                document.getElementById('modal-dialog').classList.remove('hidden');
+                dialogCallback = resolve;
+            });
+        }
+
+        function closeDialog(result) {
+            document.getElementById('modal-dialog').classList.add('hidden');
+            if (dialogCallback) {
+                dialogCallback(result);
+                dialogCallback = null;
+            }
+        }
+
+        function triggerBroadcastReminders() {
+            const list = document.getElementById('broadcast-clients-list');
+            if (!allClientsData || allClientsData.length === 0) {
+                fetch('/api/clients').then(r => r.json()).then(data => {
+                    allClientsData = data;
+                    renderBroadcastList(data);
+                });
+            } else {
+                renderBroadcastList(allClientsData);
+            }
+            document.getElementById('modal-broadcast').classList.remove('hidden');
+        }
+
+        function renderBroadcastList(clients) {
+            const list = document.getElementById('broadcast-clients-list');
+            if (!clients.length) {
+                list.innerHTML = `<div class="p-4 text-center text-xs text-stone-500">Немає зареєстрованих клієнтів</div>`;
+                return;
+            }
+            list.innerHTML = clients.map(c => `
+                <label class="flex items-center justify-between p-3 rounded-xl bg-[#0d0a08] border subtle-border hover:border-amber-700/50 cursor-pointer active:scale-[0.99] transition-all">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" value="${c.id}" onchange="updateSelectedBroadcastCount()" class="broadcast-item-checkbox w-4 h-4 rounded bg-[#1c1510] border-amber-600/60 accent-amber-500 cursor-pointer">
+                        <div>
+                            <p class="text-xs font-bold text-white">${c.full_name}</p>
+                            <p class="text-[10px] text-stone-500">${c.phone || 'без тел.'}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] px-2 py-0.5 rounded ${c.remaining_classes <= 1 ? 'bg-amber-950/80 text-amber-400 font-bold' : 'bg-stone-900 text-stone-400'}">
+                            ${c.remaining_classes} занять
+                        </span>
+                    </div>
+                </label>
+            `).join('');
+            
+            // Auto-check clients with remaining <= 1 by default
+            document.querySelectorAll('.broadcast-item-checkbox').forEach(cb => {
+                const client = clients.find(c => c.id === parseInt(cb.value));
+                if (client && client.remaining_classes <= 1) {
+                    cb.checked = true;
+                }
+            });
+            updateSelectedBroadcastCount();
+        }
+
+        function toggleSelectAllBroadcast(checked) {
+            document.querySelectorAll('.broadcast-item-checkbox').forEach(cb => {
+                cb.checked = checked;
+            });
+            updateSelectedBroadcastCount();
+        }
+
+        function updateSelectedBroadcastCount() {
+            const checkedCount = document.querySelectorAll('.broadcast-item-checkbox:checked').length;
+            const totalCount = document.querySelectorAll('.broadcast-item-checkbox').length;
+            document.getElementById('broadcast-selected-count').innerText = `${checkedCount} обрано`;
+            
+            const selectAll = document.getElementById('broadcast-select-all');
+            if (selectAll) {
+                selectAll.checked = totalCount > 0 && checkedCount === totalCount;
+            }
+        }
+
+        async function confirmSendBroadcast() {
+            const selectedIds = Array.from(document.querySelectorAll('.broadcast-item-checkbox:checked')).map(cb => parseInt(cb.value));
+            if (selectedIds.length === 0) {
+                await showCustomAlert('Будь ласка, оберіть хоча б одну ученицю для розсилки.');
+                return;
+            }
+
+            const confirmed = await showCustomConfirm(
+                `Надіслати персональне нагадування в Telegram ${selectedIds.length} обраним ученицям?`,
+                'Підтвердження розсилки'
+            );
+            if (!confirmed) return;
+
+            try {
+                const res = await fetch('/api/reminders/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_ids: selectedIds })
+                });
+                const r = await res.json();
+                closeModal('modal-broadcast');
+                await showCustomAlert(`Успішно надіслано ${r.sent} повідомлень у Telegram!`, 'Розсилку завершено');
+            } catch(e) {
+                await showCustomAlert('Помилка під час відправки повідомлень', 'Помилка');
+            }
+        }
+
+        function openAddBookingModal() {
+            // Populate clients select
+            const clientSelect = document.getElementById('book-client-select');
+            if (allClientsData.length > 0) {
+                clientSelect.innerHTML = allClientsData.map(c => `<option value="${c.id}">${c.full_name} (${c.phone || 'без тел.'})</option>`).join('');
+            } else {
+                fetch('/api/clients').then(r => r.json()).then(data => {
+                    allClientsData = data;
+                    clientSelect.innerHTML = data.map(c => `<option value="${c.id}">${c.full_name} (${c.phone || 'без тел.'})</option>`).join('');
+                });
+            }
+
+            // Populate groups select
+            const groupSelect = document.getElementById('book-group-select');
+            if (allGroupsData.length > 0) {
+                groupSelect.innerHTML = allGroupsData.map(g => `<option value="${g.id}">${g.name} (${g.schedule_days} о ${g.schedule_time})</option>`).join('');
+            } else {
+                fetch('/api/groups').then(r => r.json()).then(data => {
+                    allGroupsData = data;
+                    groupSelect.innerHTML = data.map(g => `<option value="${g.id}">${g.name} (${g.schedule_days} о ${g.schedule_time})</option>`).join('');
+                });
+            }
+
+            // Default date to today
+            document.getElementById('book-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-booking').classList.remove('hidden');
+        }
+
+        async function confirmManualBooking() {
+            const clientId = document.getElementById('book-client-select').value;
+            const groupId = document.getElementById('book-group-select').value;
+            const dateStr = document.getElementById('book-date').value;
+
+            if (!clientId || !groupId || !dateStr) {
+                showCustomAlert('Будь ласка, заповніть усі обов\'язкові поля');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/bookings/manual', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: parseInt(clientId), group_id: parseInt(groupId), booking_date: dateStr })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeModal('modal-booking');
+                    loadTodayBookings();
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    alert(data.message || 'Помилка запису');
+                }
+            } catch(e) {
+                alert('Помилка з\'єднання з сервером');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Initialize
+        loadTodayBookings();
+        loadLeads(); // checks if new leads exist and sets badge
+        setInterval(loadLeads, 15000); // live check every 15s
+    </script>
+</body>
+</html>
